@@ -4,6 +4,8 @@
 
 This silly but fun project is a web-based application designed to measure and compare users' clock reading speed and accuracy, specifically for analog and digital clocks. Users can participate in an experiment, input their readings, and then view their individual results as well as compare their performance against community-wide statistics.
 
+Try it here: https://clock-reading.onrender.com/ (might take few seconds before loading).
+
 ## Features
 
 * **Experiment Modes:**
