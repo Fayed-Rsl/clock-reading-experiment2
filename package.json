@@ -1,0 +1,28 @@
+{
+  "name": "clock-reading-experiment",
+  "version": "1.0.0",
+  "description": "Clock Reading Speed Experiment with Database Storage",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "@sqlitecloud/drivers": "^1.0.507",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "experiment",
+    "psychology",
+    "clock",
+    "reaction-time"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

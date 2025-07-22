@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClockReader</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+        
+        .description {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .setup-section {
+            margin-bottom: 30px;
+        }
+        
+        .clock-type-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .clock-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .clock-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .clock-option.selected {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+        
+        .analog-options {
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .analog-options.show {
+            display: block;
+        }
+        
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .experiment-area {
+            display: none;
+            min-height: 400px;
+        }
+        
+        .clock-display {
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+        }
+        
+        .digital-clock {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #333;
+            background: #d9effb;
+            color: rgb(10, 10, 10);
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+        }
+                
+        .analog-clock {
+            width: 250px;
+            height: 250px;
+            border: 8px solid #333;
+            border-radius: 50%;
+            position: relative;
+            background: white;
+            box-sizing: border-box; /* Important for consistent borders */
+            /* overflow: hidden; Prevent any overflow */
+
+            overflow: hidden;
+        }
+
+        .clock-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .clock-number {
+            position: absolute;
+            width: 10%;  /* Set relative size */
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            transform: translate(-50%, -50%);
+        }
+
+        .minute-mark {
+            position: absolute;
+            width: 2px;
+            height: 6%;
+            background: #333;
+            left: 50%;
+            top: 50%;
+            transform-origin: 50% 0; /* Set rotation origin to the center of the *top* edge of the mark itself. This means it rotates around the clock's center. */
+                }
+
+        .minute-mark.major {
+            height: 10%;
+            width: 3px;
+            background: #000;
+        }
+
+        .clock-hand {
+            position: absolute;
+            background: #333;
+            transform-origin: center bottom;
+            border-radius: 2px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -100%);
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 30%;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 40%;
+        }
+
+        .center-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .instruction {
+            font-size: 1.2rem;
+            color: #333;
+            margin: 20px 0;
+        }
+        
+        .time-input {
+            font-size: 1.5rem;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            width: 200px;
+        }
+        
+        .time-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .results {
+            display: none;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .results h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .comparison-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        
+        .comparison-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.88rem;
+            opacity: 0.9;
+        }
+
+        .performance-indicator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        
+        .performance-excellent {
+            background: #28a745;
+            color: white;
+        }
+        
+        .performance-good {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .performance-average {
+            background: #fd7e14;
+            color: white;
+        }
+        
+        .performance-below {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .trial-counter {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .digital-clock {
+                font-size: 2.5rem;
+                padding: 15px 25px;
+            }
+            
+            .analog-clock {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .clock-type-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .clock-option {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clock reading speed</h1>
+        
+        <div id="setup" class="setup-section">
+            <p class="description">
+                How quickly and accurately can you read time?
+                Press SPACE or CLICK as soon as you perceived the time.
+            </p>
+            
+            <div class="clock-type-selector">
+                <div class="clock-option" data-type="digital">
+                    📱 Digital Clock
+                </div>
+                <div class="clock-option" data-type="analog">
+                    🕐 Analog Clock
+                </div>
+                <div class="clock-option" data-type="mixed">
+                    🔄 Mixed (Random)
+                </div>
+            </div>
+            
+            <div class="analog-options" id="analogOptions">
+                <div class="checkbox-option">
+                    <input type="checkbox" id="showNumbers" checked>
+                    <label for="showNumbers">Show numbers on analog clock</label>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="startExperiment()">Start Experiment</button>
+        </div>
+        
+        <div id="experiment" class="experiment-area">
+            <div class="trial-counter" id="trialCounter">Trial 1 of 10</div>
+            
+            <div class="instruction" id="instruction">
+                Press SPACE when you've read the time, then type it exactly as you see it.
+            </div>
+            
+            <div class="clock-display" id="clockDisplay">
+                </div>
+            
+            <div id="inputSection" style="display: none;">
+                <input type="text" id="timeInput" placeholder="HH:MM" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" pattern="[0-9:]*">
+                <br>
+                <button class="btn" onclick="submitTime()">Submit</button>
+            </div>
+        </div>
+        
+        <div id="savePrompt" class="results" style="display: none;">
+            <h3>Save Your Results?</h3>
+            <p class="description">Would you like to save your results and see how you compare to others?</p>
+            <div style="margin: 20px 0;">
+                <input type="text" id="usernameInput" class="time-input" placeholder="Name (optional)" style="width: 250px;">
+            </div>
+            <button class="btn" onclick="saveAndShowResults()">Save and see comparaison </button>
+            <button class="btn" onclick="skipSaveAndShowResults()" style="background: #6c757d;">Not saving and see my results</button>
+        </div>
+
+        <div id="results" class="results">
+            <h3>Your Experiment Results</h3>
+            <div id="resultsContent"></div>
+            
+            <div id="comparisonResults" style="display: none;">
+                <h3 style="margin-top: 30px; color: #667eea;">📊 How You Compare</h3>
+                <div id="comparisonContent"></div>
+                
+                <h3 style="margin-top: 30px; color: #667eea;">📈 Community Statistics</h3>
+                <div id="statisticsContent"></div>
+            </div>
+            
+            <div style="margin-top: 30px;">
+                <button class="btn" onclick="restartExperiment()">Start New Experiment</button>
+            </div>
+        </div>
+    </div>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/109/109613.png" type="image/png">
+
+
+    <script>
+        let currentTrial = 0;
+        let totalTrials = 10;
+        let experimentData = [];
+        let currentTime = '';
+        let startTime = 0;
+        let reactionTime = 0;
+        let typingStartTime = 0;
+        let clockType = '';
+        let showNumbers = true;
+        let selectedClockType = '';
+        let communityStats = null;
+        
+        // Clock type selection
+        document.querySelectorAll('.clock-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.clock-option').forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedClockType = this.dataset.type;
+                
+                const analogOptions = document.getElementById('analogOptions');
+                if (selectedClockType === 'analog' || selectedClockType === 'mixed') {
+                    analogOptions.classList.add('show');
+                } else {
+                    analogOptions.classList.remove('show');
+                }
+            });
+        });
+        
+        function startExperiment() {
+            if (!selectedClockType) {
+                alert('Please select a clock type first!');
+                return;
+            }
+            
+            showNumbers = document.getElementById('showNumbers').checked;
+            currentTrial = 0;
+            experimentData = [];
+            
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('results').style.display = 'none'; // Hide results if restarting
+            document.getElementById('experiment').style.display = 'block';
+            
+            nextTrial();
+        }
+        
+        function nextTrial() {
+            currentTrial++;
+            
+            if (currentTrial > totalTrials) {
+                showResults();
+                return;
+            }
+            
+            document.getElementById('trialCounter').textContent = `Trial ${currentTrial} of ${totalTrials}`;
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('instruction').textContent = 'Press when you have read the time';
+            
+
+            // Determine clock type for this trial
+            if (selectedClockType === 'mixed') {
+                clockType = Math.random() < 0.5 ? 'digital' : 'analog';
+            } else {
+                clockType = selectedClockType;
+            }
+            
+            // Generate random time
+            const hours = Math.floor(Math.random() * 12) + 1;
+            const minutes = Math.floor(Math.random() * 60);
+            
+            if (clockType === 'digital') {
+                currentTime = `${hours}:${minutes.toString().padStart(2, '0')}`;
+                showDigitalClock(currentTime);
+            } else {
+                currentTime = `${hours}:${minutes.toString().padStart(2, '0')}`;
+                showAnalogClock(hours, minutes);
+            }
+            
+            startTime = Date.now();
+            
+            // Add keyboard listener
+            document.addEventListener('keydown', spaceKeyHandler);
+
+            // Add the possibility to click on the clock to start the trial
+            const clockDisplay = document.getElementById('clockDisplay');
+            clockDisplay.addEventListener('click', () => {
+                if (currentTrial <= totalTrials) {
+                    spaceKeyHandler({ code: 'Space', preventDefault: () => {} });
+                }
+            });
+        }
+        
+        function spaceKeyHandler(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                reactionTime = Date.now() - startTime;
+                document.removeEventListener('keydown', spaceKeyHandler);
+                
+                document.getElementById('instruction').textContent = 'Type the exact time you saw';
+                document.getElementById('inputSection').style.display = 'block';
+                document.getElementById('timeInput').focus();
+
+                // Hide the clock display
+                document.getElementById('clockDisplay').innerHTML = '';                
+                
+                // Record typing start time
+                typingStartTime = Date.now();
+            }
+        }
+        
+        function showDigitalClock(time) {
+            const clockDisplay = document.getElementById('clockDisplay');
+            clockDisplay.innerHTML = `<div class="digital-clock">${time}</div>`;
+        }
+
+        
+        function showAnalogClock(hours, minutes) {
+            const clockDisplay = document.getElementById('clockDisplay');
+
+            let numbersHTML = '';
+            if (showNumbers) {
+                for (let i = 1; i <= 12; i++) {
+                    const angle = (i * 30) - 90; // degrees
+                    const radius = 38; // % distance from center 40
+                    const x = 50 + radius * Math.cos(angle * Math.PI / 180);
+                    const y = 50 + radius * Math.sin(angle * Math.PI / 180);
+                    numbersHTML += `<div class="clock-number" style="left:${x}%; top:${y}%;">${i}</div>`;
+                }
+            }
+
+            let minuteMarksHTML = '';
+            // Calculate the radial distance to push the minute marks outwards
+            // Clock width/height is 250px. Border is 8px.
+            // Inner radius of the clock face = (250px / 2) - 8px = 125px - 8px = 117px.
+            // We want the marks to start slightly inwards from the edge, e.g., at 80% of this inner radius.
+            const clockRadius = 250 / 2; // 125px
+            const borderWidth = 8;
+            const effectiveRadiusForMarks = clockRadius - borderWidth; // 117px
+            // This value determines how far from the clock's center the *top* of the minute mark will be.
+            // Adjust this `0.85` multiplier to move marks closer/further from the edge.
+            const startOffsetFromCenter = effectiveRadiusForMarks * 0.7; 
+
+            for (let i = 0; i < 60; i++) {
+                const angle = i * 6; // degrees for rotation
+                const isMajor = i % 5 === 0;
+                const markClass = isMajor ? ' major' : ''; // Leading space is important if combining with existing class
+
+                // The transform will first rotate around the mark's top-center (which is at the clock's center),
+                // then translate it downwards (positive Y) by 'startOffsetFromCenter' pixels.
+                // This correctly places the top of the mark at the desired radial distance.
+                minuteMarksHTML += `<div class="minute-mark${markClass}" style="transform: rotate(${angle}deg) translateY(${startOffsetFromCenter}px);"></div>`;
+            }
+
+
+            const hourAngle = (hours % 12) * 30 + minutes * 0.5;
+            const minuteAngle = minutes * 6;
+
+            clockDisplay.innerHTML = `
+                <div class="analog-clock">
+                    <div class="clock-face">
+                        ${numbersHTML}
+                        ${minuteMarksHTML}
+                        <div class="clock-hand hour-hand" style="transform: translate(-50%, -100%) rotate(${hourAngle}deg);"></div>
+                        <div class="clock-hand minute-hand" style="transform: translate(-50%, -100%) rotate(${minuteAngle}deg);"></div>
+                        <div class="center-dot"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function submitTime() {
+            const userInput = document.getElementById('timeInput').value.trim();
+            const typingTime = Date.now() - typingStartTime;
+            
+            if (!userInput) {
+                alert('Please enter the time you saw');
+                return;
+            }
+            
+            // Check accuracy
+            const isCorrect = normalizeTime(userInput) === normalizeTime(currentTime);
+            
+            // Store trial data
+            experimentData.push({
+                trial: currentTrial,
+                clockType: clockType,
+                showNumbers: clockType === 'analog' ? showNumbers : null,
+                actualTime: currentTime,
+                userInput: userInput,
+                correct: isCorrect,
+                reactionTime: reactionTime,
+                typingTime: typingTime,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Clear input
+            document.getElementById('timeInput').value = '';
+            
+            // Next trial
+            setTimeout(nextTrial, 10); // Short delay before next trial (in milliseconds)
+        }
+
+        function normalizeTime(timeStr) {
+            // Remove spaces and convert to standard format (e.g., "1:05", "12:30")
+            let normalized = timeStr.replace(/\s/g, '');
+            // Handle cases like "1:5" becoming "1:05" if single digit minute
+            const parts = normalized.split(':');
+            if (parts.length === 2) {
+                const hour = parseInt(parts[0]);
+                const minute = parseInt(parts[1]);
+                if (!isNaN(hour) && !isNaN(minute)) {
+                    normalized = `${hour}:${minute.toString().padStart(2, '0')}`;
+                }
+            }
+            return normalized.toLowerCase();
+        }
+        
+        function showResults() {
+            document.getElementById('experiment').style.display = 'none';
+            document.getElementById('savePrompt').style.display = 'block';
+            
+            // Calculate basic statistics for display
+            calculateBasicStats();
+        }
+        
+        function calculateBasicStats() {
+            // Calculate statistics
+            const digitalTrials = experimentData.filter(d => d.clockType === 'digital');
+            const analogTrials = experimentData.filter(d => d.clockType === 'analog');
+            
+            const digitalAvgReaction = digitalTrials.length ? digitalTrials.reduce((sum, d) => sum + d.reactionTime, 0) / digitalTrials.length : 0;
+            const analogAvgReaction = analogTrials.length ? analogTrials.reduce((sum, d) => sum + d.reactionTime, 0) / analogTrials.length : 0;
+            
+            const digitalAccuracy = digitalTrials.length ? (digitalTrials.filter(d => d.correct).length / digitalTrials.length * 100) : 0;
+            const analogAccuracy = analogTrials.length ? (analogTrials.filter(d => d.correct).length / analogTrials.length * 100) : 0;
+            
+            let resultsHTML = ``;
+
+            // Display overall stats if mixed or specific to the selected type
+            if (selectedClockType === 'mixed' || selectedClockType === 'digital' || selectedClockType === 'analog') {
+                 resultsHTML += `
+                    <div class="result-item">
+                        <span><strong>Overall Accuracy:</strong></span>
+                        <span><strong>${(experimentData.filter(d => d.correct).length / experimentData.length * 100).toFixed(1)}%</strong></span>
+                    </div>
+                    <div class="result-item">
+                        <span><strong>Average Reaction Time:</strong></span>
+                        <span><strong>${(experimentData.reduce((sum, d) => sum + d.reactionTime, 0) / experimentData.length).toFixed(0)}ms</strong></span>
+                    </div>
+                `;
+            }
+            
+            if (selectedClockType === 'digital' || selectedClockType === 'mixed') {
+                if (digitalTrials.length > 0) {
+                    resultsHTML += `
+                        <div class="result-item">
+                            <span>Digital Clock Reaction Time:</span>
+                            <span>${digitalAvgReaction.toFixed(0)}ms</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Digital Clock Accuracy:</span>
+                            <span>${digitalAccuracy.toFixed(1)}%</span>
+                        </div>
+                    `;
+                } else if (selectedClockType === 'digital') {
+                     resultsHTML += `<p>No digital clock trials were conducted in this experiment.</p>`;
+                }
+            }
+            
+            if (selectedClockType === 'analog' || selectedClockType === 'mixed') {
+                if (analogTrials.length > 0) {
+                    resultsHTML += `
+                        <div class="result-item">
+                            <span>Analog Clock Reaction Time:</span>
+                            <span>${analogAvgReaction.toFixed(0)}ms</span>
+                        </div>
+                        <div class="result-item">
+                            <span>Analog Clock Accuracy:</span>
+                            <span>${analogAccuracy.toFixed(1)}%</span>
+                        </div>
+                    `;
+                } else if (selectedClockType === 'analog') {
+                    resultsHTML += `<p>No analog clock trials were conducted in this experiment.</p>`;
+                }
+            }
+            
+            document.getElementById('resultsContent').innerHTML = resultsHTML;
+        }
+
+        async function saveAndShowResults() {
+            const username = document.getElementById('usernameInput').value.trim();
+            
+            // Prepare summary data
+            const digitalTrials = experimentData.filter(d => d.clockType === 'digital');
+            const analogTrials = experimentData.filter(d => d.clockType === 'analog');
+            
+            const summary = {
+                clockTypeSelection: selectedClockType,
+                showNumbers: showNumbers,
+                totalTrials: experimentData.length,
+                overallAccuracy: experimentData.length > 0 ? (experimentData.filter(d => d.correct).length / experimentData.length * 100) : 0,
+                avgReactionTime: experimentData.length > 0 ? (experimentData.reduce((sum, d) => sum + d.reactionTime, 0) / experimentData.length) : 0,
+                digitalAvgReaction: digitalTrials.length ? digitalTrials.reduce((sum, d) => sum + d.reactionTime, 0) / digitalTrials.length : 0,
+                analogAvgReaction: analogTrials.length ? analogTrials.reduce((sum, d) => sum + d.reactionTime, 0) / analogTrials.length : 0,
+                digitalAccuracy: digitalTrials.length ? (digitalTrials.filter(d => d.correct).length / digitalTrials.length * 100) : 0,
+                analogAccuracy: analogTrials.length ? (analogTrials.filter(d => d.correct).length / analogTrials.length * 100) : 0
+            };
+            
+            try {
+                // Save to database
+                const saveResponse = await fetch('/api/save-experiment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username || null,
+                        experimentData: experimentData,
+                        summary: summary
+                    })
+                });
+                
+                if (!saveResponse.ok) {
+                    throw new Error('Failed to save data');
+                }
+                
+                // Get community statistics
+                const statsResponse = await fetch('/api/statistics');
+                if (statsResponse.ok) {
+                    communityStats = await statsResponse.json();
+                } else {
+                    console.error('Failed to fetch community statistics');
+                }
+                
+                showFinalResults(true, summary);
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('There was an error saving your data, but you can still see your results.');
+                showFinalResults(false, summary);
+            }
+        }
+        
+        function skipSaveAndShowResults() {
+            const digitalTrials = experimentData.filter(d => d.clockType === 'digital');
+            const analogTrials = experimentData.filter(d => d.clockType === 'analog');
+            
+            const summary = {
+                clockTypeSelection: selectedClockType,
+                showNumbers: showNumbers,
+                totalTrials: experimentData.length,
+                overallAccuracy: experimentData.length > 0 ? (experimentData.filter(d => d.correct).length / experimentData.length * 100) : 0,
+                avgReactionTime: experimentData.length > 0 ? (experimentData.reduce((sum, d) => sum + d.reactionTime, 0) / experimentData.length) : 0,
+                digitalAvgReaction: digitalTrials.length ? digitalTrials.reduce((sum, d) => sum + d.reactionTime, 0) / digitalTrials.length : 0,
+                analogAvgReaction: analogTrials.length ? analogTrials.reduce((sum, d) => sum + d.reactionTime, 0) / analogTrials.length : 0,
+                digitalAccuracy: digitalTrials.length ? (digitalTrials.filter(d => d.correct).length / digitalTrials.length * 100) : 0,
+                analogAccuracy: analogTrials.length ? (analogTrials.filter(d => d.correct).length / analogTrials.length * 100) : 0
+            };
+            
+            showFinalResults(false, summary);
+        }
+        
+        function showFinalResults(showComparison, summary) {
+            document.getElementById('savePrompt').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            if (showComparison && communityStats) {
+                document.getElementById('comparisonResults').style.display = 'block';
+                displayComparisons(summary);
+                displayCommunityStats();
+            } else {
+                document.getElementById('comparisonResults').style.display = 'none'; // Hide comparison if not saving or no stats
+            }
+        }
+
+        function displayComparisons(userStats) {
+            const comparisonContent = document.getElementById('comparisonContent');
+            comparisonContent.innerHTML = ''; // Clear previous content
+
+            if (!communityStats || !communityStats.overall || communityStats.overall.length === 0) {
+                comparisonContent.innerHTML = '<p class="loading">Loading community comparison data...</p>';
+                return;
+            }
+
+            const overallCommunity = communityStats.overall;
+            const clockComparisonCommunity = communityStats.clockComparison;
+            const communityTotalTrials = overallCommunity.total_experiments * totalTrials;  
+
+
+            let userAccuracy = 0;
+            let communityAvgAccuracy = 0;
+            let userSpeed = 0;
+            let communityAvgSpeed = 0;
+            let comparisonTitle = '📊 Your performance vs Community average';
+
+            if (selectedClockType === 'digital') {
+                userAccuracy = userStats.digitalAccuracy;
+                userSpeed = userStats.digitalAvgReaction;
+                const digitalCommunity = clockComparisonCommunity.find(c => c.clock_type === 'digital');
+                if (digitalCommunity) {
+                    communityAvgAccuracy = digitalCommunity.avg_accuracy;
+                    communityAvgSpeed = digitalCommunity.avg_reaction;
+                }
+                comparisonTitle = '📊 Your Digital Clock Performance vs Community Average';
+            } else if (selectedClockType === 'analog') {
+                userAccuracy = userStats.analogAccuracy;
+                userSpeed = userStats.analogAvgReaction;
+                const analogCommunity = clockComparisonCommunity.find(c => c.clock_type === 'analog');
+                if (analogCommunity) {
+                    communityAvgAccuracy = analogCommunity.avg_accuracy;
+                    communityAvgSpeed = analogCommunity.avg_reaction;
+                }
+                comparisonTitle = '📊 Your Analog Clock Performance vs Community Average';
+            } else { // Mixed or Overall
+                userAccuracy = userStats.overallAccuracy;
+                userSpeed = userStats.avgReactionTime;
+                communityAvgAccuracy = overallCommunity.avg_accuracy;
+                communityAvgSpeed = overallCommunity.avg_reaction_time;
+            }
+
+            let comparisonHTML = `
+                <div class="comparison-card">
+                    <div class="comparison-content">
+                        <h4>${comparisonTitle}</h4>
+                        <p>Total trials in the community: <strong>${communityTotalTrials}</strong></p>
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">${userAccuracy.toFixed(1)}%</div>
+                                <div class="stat-label">Your accuracy</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${communityAvgAccuracy ? communityAvgAccuracy.toFixed(1) : 'N/A'}%</div>
+                                <div class="stat-label">Community accuracy</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${userSpeed.toFixed(0)}ms</div>
+                                <div class="stat-label">Your speed</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${communityAvgSpeed ? communityAvgSpeed.toFixed(0) : 'N/A'}ms</div>
+                                <div class="stat-label">Community speed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Comparison for Digital vs Analog if mixed data is available for community
+            if (selectedClockType === 'mixed' && clockComparisonCommunity && clockComparisonCommunity.length === 2) {
+                const digitalCommunity = clockComparisonCommunity.find(c => c.clock_type === 'digital');
+                const analogCommunity = clockComparisonCommunity.find(c => c.clock_type === 'analog');
+
+                if (digitalCommunity && analogCommunity) {
+                    const digitalFasterCommunity = digitalCommunity.avg_reaction < analogCommunity.avg_reaction;
+                    const speedDiffCommunity = Math.abs(digitalCommunity.avg_reaction - analogCommunity.avg_reaction);
+
+                    comparisonHTML += `
+                        <div class="comparison-card" style="margin-top: 20px;">
+                            <div class="comparison-content">
+                                <h4>⏱️ Clock type performance comparison </h4>
+                                <div class="stat-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-value">${digitalCommunity.avg_reaction.toFixed(0)}ms</div>
+                                        <div class="stat-label">Digital speed</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value">${digitalCommunity.avg_accuracy.toFixed(1)}%</div>
+                                        <div class="stat-label">Digital accuracy</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value">${analogCommunity.avg_reaction.toFixed(0)}ms</div>
+                                        <div class="stat-label">Analog speed</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-value">${analogCommunity.avg_accuracy.toFixed(1)}%</div>
+                                        <div class="stat-label">Analog accuracy</div>
+                                    </div>
+                                </div>
+                                <p style="margin-top: 15px;">${digitalFasterCommunity ? 'Digital' : 'Analog'} clocks are <strong>${speedDiffCommunity.toFixed(0)} ms</strong> faster on average.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            comparisonContent.innerHTML = comparisonHTML;
+        }
+
+        function displayCommunityStats() {
+            const statisticsContent = document.getElementById('statisticsContent');
+            statisticsContent.innerHTML = ''; // Clear previous content
+
+            if (!communityStats || !communityStats.numbersEffect || communityStats.numbersEffect.length < 2) {
+                statisticsContent.innerHTML = '<p class="loading">Not enough data to display detailed community statistics.</p>';
+                return;
+            }
+
+            const withNumbers = communityStats.numbersEffect.find(n => n.show_numbers === 1);
+            const withoutNumbers = communityStats.numbersEffect.find(n => n.show_numbers === 0);
+
+            let statsHTML = '';
+
+            // Numbers effect on analog clocks
+            if (withNumbers && withoutNumbers && withNumbers.avg_reaction > 0 && withoutNumbers.avg_reaction > 0) {
+                const numbersBetter = withNumbers.avg_reaction < withoutNumbers.avg_reaction;
+                const timeDiff = Math.abs(withNumbers.avg_reaction - withoutNumbers.avg_reaction);
+
+                statsHTML += `
+                    <div class="comparison-card">
+                        <div class="comparison-content">
+                            <h4>🔢 Effect of numbers on analog clocks</h4>
+                            <div class="stat-grid">
+                                <div class="stat-card">
+                                    <div class="stat-value">${withNumbers.avg_reaction.toFixed(0)}ms</div>
+                                    <div class="stat-label">Analog numbers speed</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">${withNumbers.avg_accuracy.toFixed(1)}%</div>
+                                    <div class="stat-label">Analog numbers accuracy</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">${withoutNumbers.avg_reaction.toFixed(0)}ms</div>
+                                    <div class="stat-label">Analog no numbers speed</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">${withoutNumbers.avg_accuracy.toFixed(1)}%</div>
+                                    <div class="stat-label">Analog no numbers accuracy</div>
+                                </div>
+                            </div>
+                            <p style="margin-top: 15px;">
+                                Community data suggests numbers on analog clocks ${numbersBetter ? 'help' : 'slow down'} reading by <strong>${timeDiff.toFixed(0)}ms</strong> on average.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                 statsHTML += `<p>Not enough data to analyze the effect of numbers on analog clocks.</p>`;
+            }
+
+            statisticsContent.innerHTML = statsHTML;
+        }
+
+        function getPerformanceLevel(userValue, avgValue, type) {
+            if (!avgValue || avgValue === 0) return { class: 'performance-average', label: 'No Data' };
+            
+            let performanceRatio;
+            
+            if (type === 'accuracy') {
+                performanceRatio = userValue / avgValue;
+                if (performanceRatio >= 1.2) return { class: 'performance-excellent', label: 'Excellent!' };
+                if (performanceRatio >= 1.05) return { class: 'performance-good', label: 'Above Average' };
+                if (performanceRatio >= 0.95) return { class: 'performance-average', label: 'Average' };
+                return { class: 'performance-below', label: 'Below Average' };
+            } else { // speed - lower is better
+                performanceRatio = avgValue / userValue;
+                if (performanceRatio >= 1.2) return { class: 'performance-excellent', label: 'Excellent!' };
+                if (performanceRatio >= 1.05) return { class: 'performance-good', label: 'Above Average' };
+                if (performanceRatio >= 0.95) return { class: 'performance-average', label: 'Average' };
+                return { class: 'performance-below', label: 'Below Average' };
+            }
+        }
+
+        function restartExperiment() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('setup').style.display = 'block';
+            document.getElementById('comparisonResults').style.display = 'none'; // Hide comparison results on restart
+            
+            // Reset selections
+            document.querySelectorAll('.clock-option').forEach(opt => opt.classList.remove('selected'));
+            selectedClockType = '';
+            document.getElementById('analogOptions').classList.remove('show');
+            document.getElementById('showNumbers').checked = true; // Reset checkbox
+            communityStats = null; // Clear community stats for fresh fetch
+        }
+        
+        // Handle Enter key for time input
+        document.getElementById('timeInput').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                submitTime();
+            }
+        });        
+
+    </script>
+</body>
+</html> 
